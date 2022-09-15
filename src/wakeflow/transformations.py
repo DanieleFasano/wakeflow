@@ -111,7 +111,8 @@ def _get_chi(
     C_outer, 
     C_inner,
     solution_outer, 
-    solution_inner, 
+    solution_inner,
+    t1,
     t0_outer, 
     t0_inner,
     tf_outer,
@@ -130,7 +131,7 @@ def _get_chi(
         return 0.
 
     # change coordinates of the grid point (rr,pphi) to (t1,eta1)
-    t1 = _t(rr, Rp, hr, q, p)
+    t1 = t1#_t(rr, Rp, hr, q, p)
     eta1 = _Eta(rr, pphi, Rp, hr, q, cw)
 
     # If the point is in the outer disk, use the outer wake solution
