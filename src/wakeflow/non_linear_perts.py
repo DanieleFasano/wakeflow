@@ -496,6 +496,30 @@ class _NonLinearPerts():
             dnl = np.zeros((len(x), len(y)))
             unl = np.zeros((len(x), len(y)))
             vnl = np.zeros((len(x), len(y)))
+            
+            n_x = len(x)
+            n_y = len(y)
+            m_x = n_x // 2
+            m_y = n_y // 2
+            grid_tot = np.zeros((n_x, n_y))
+            grid_1 = np.zeros((m_x, m_y))
+            grid_2 = np.zeros((m_x, m_y))
+            grid_3 = np.zeros((m_x, n_y))
+            
+            X = self.g.X 
+            Y = self.g.Y
+            R = np.sqrt(X ** 2 + Y ** 2)
+            
+            for i in tqdm(range(m_x), desc="* Mapping to physical coords"):
+                for j in range(i,m_y):
+                    grid_1[i,j] = _t(R[i,j], Rp, hr, q, p)
+                    
+            grid_2 = grid_1 + grid_1.T
+            np.fill_diagonal(grid_2, np.diag(grid_1))
+            
+            grid_3 = np.concatenate((grid_2, np.fliplr(grid_2)), axis = 1)
+            
+            grid_tot = np.concatenate((grid_3, np.flipud(grid_3)), axis = 0)
 
             for i in tqdm(range(len(x)), desc="* Mapping to physical coords"):
                 for j in range(len(y)):
@@ -504,6 +528,7 @@ class _NonLinearPerts():
                     yy = y[j]
                     rr = np.sqrt(xx**2 + yy**2)
                     pphi = np.arctan2(yy,xx)
+                    t1 = grid_1[i,j]
 
                     Chi = _get_chi(
                         pphi, 
@@ -517,7 +542,8 @@ class _NonLinearPerts():
                         C_outer,
                         C_inner, 
                         solution_outer, 
-                        solution_inner, 
+                        solution_inner,
+                        t1,
                         t0_outer,
                         t0_inner, 
                         tf_outer,
