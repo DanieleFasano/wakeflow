@@ -506,8 +506,8 @@ class _NonLinearPerts():
             grid_2 = np.zeros((m_x, m_y))
             grid_3 = np.zeros((m_x, n_y))
             
-            X = self.g.X 
-            Y = self.g.Y
+            X = self.g.X[:,0,:] 
+            Y = self.g.Y[:,0,:] 
             R = np.sqrt(X ** 2 + Y ** 2)
             
             for i in tqdm(range(m_x), desc="* Mapping to physical coords"):
