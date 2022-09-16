@@ -510,7 +510,7 @@ class _NonLinearPerts():
             Y = self.g.Y[:,0,:] 
             R = np.sqrt(X ** 2 + Y ** 2)
             
-            for i in tqdm(range(m_x), desc="* Mapping to physical coords"):
+            for i in tqdm(range(m_x), desc="* Computing t"):
                 for j in range(i,m_y):
                     grid_1[i,j] = _t(R[i,j], Rp, hr, q, p)
                     
@@ -528,7 +528,7 @@ class _NonLinearPerts():
                     yy = y[j]
                     rr = np.sqrt(xx**2 + yy**2)
                     pphi = np.arctan2(yy,xx)
-                    t1 = grid_1[i,j]
+                    t1 = grid_tot[i,j]
 
                     Chi = _get_chi(
                         pphi, 
