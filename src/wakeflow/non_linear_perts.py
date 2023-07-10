@@ -359,37 +359,38 @@ class _NonLinearPerts():
         r_IC_inner   = lp.r_ann[ 0]
         
         #Evaluate Chi profile using global transformation
-        self.profile_outer_dens = (lp.pert_rho_ann[:,-1] / beta_p) * (_g(r_IC_outer, self.p.r_planet, self.p.hr_planet, self.p.q, self.p.p) * (self.p.gamma + 1) / 2)
-        self.profile_inner_dens = (lp.pert_rho_ann[:, 0] / beta_p) * (_g(r_IC_inner, self.p.r_planet, self.p.hr_planet, self.p.q, self.p.p) * (self.p.gamma + 1) / 2)
+        self.profile_outer = (lp.pert_rho_ann[:,-1] / beta_p) * (_g(r_IC_outer, self.p.r_planet, self.p.hr_planet, self.p.q, self.p.p) * (self.p.gamma + 1) / 2)
+        self.profile_inner = (lp.pert_rho_ann[:, 0] / beta_p) * (_g(r_IC_inner, self.p.r_planet, self.p.hr_planet, self.p.q, self.p.p) * (self.p.gamma + 1) / 2)
         
-        def get_profile_from_u(u, r_IC):
-            # calculate g
-            g_fac = _g(
-                r_IC, 
-                self.p.r_planet, 
-                self.p.hr_planet, 
-                self.p.q, 
-                self.p.p
-            )
-            # redefine variable to be shorter name
-            gamma = self.p.gamma
-            # calculate sound speed at the edges of the box
-            c_s_edge = self.p.c_s_planet * (r_IC / self.p.r_planet)**-self.p.q
-            #c_s_edge = self.p.c_s_planet
-            # calculate brackets term
-            brackets = (1 + u * ((gamma - 1) / (2 * c_s_edge)))**(2 / (gamma - 1)) - 1
-            # calculate chi
-            chi = ((gamma + 1) / 2) * g_fac * brackets * (1 / beta_p)
-            #chi = - 0.5 * u * (g_fac * (gamma + 1)) / c_s_edge
-            return chi
-        
-        u_outer = lp.pert_v_r_ann[:,-1] / 1e-5
-        u_inner = lp.pert_v_r_ann[:, 0] / 1e-5
-        
-        self.profile_outer = -get_profile_from_u(u_outer, r_IC_outer)
-        self.profile_inner = get_profile_from_u(u_inner, r_IC_inner)
+        if False:
+            def get_profile_from_u(u, r_IC):
+                # calculate g
+                g_fac = _g(
+                    r_IC, 
+                    self.p.r_planet, 
+                    self.p.hr_planet, 
+                    self.p.q, 
+                    self.p.p
+                )
+                # redefine variable to be shorter name
+                gamma = self.p.gamma
+                # calculate sound speed at the edges of the box
+                c_s_edge = self.p.c_s_planet * (r_IC / self.p.r_planet)**-self.p.q
+                #c_s_edge = self.p.c_s_planet
+                # calculate brackets term
+                brackets = (1 + u * ((gamma - 1) / (2 * c_s_edge)))**(2 / (gamma - 1)) - 1
+                # calculate chi
+                chi = ((gamma + 1) / 2) * g_fac * brackets * (1 / beta_p)
+                #chi = - 0.5 * u * (g_fac * (gamma + 1)) / c_s_edge
+                return chi
+            
+            u_outer = lp.pert_v_r_ann[:,-1] / 1e-5
+            u_inner = lp.pert_v_r_ann[:, 0] / 1e-5
+            
+            self.profile_outer = get_profile_from_u(u_outer, r_IC_outer)
+            self.profile_inner = - get_profile_from_u(u_inner, r_IC_inner)
 
-        if True:
+        if False:
          plt.plot(phi_IC_outer, self.profile_outer_dens, label="outer dens", c="C0")
          plt.plot(phi_IC_inner, self.profile_inner_dens, label="inner dens", c="C1")
          plt.plot(phi_IC_outer, self.profile_outer, label="outer vr", c="C0", ls="--")

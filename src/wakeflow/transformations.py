@@ -424,7 +424,7 @@ def _get_chi_vector(
     return Chi
 
 # get the density and velocity perturbations at the grid point from chi
-def _get_dens_vel_old(rr, Chi, gamma, Rp, cw, csp, hr, q, p, use_old_vel, m_p, m_th):
+def _get_dens_vel(rr, Chi, gamma, Rp, cw, csp, hr, q, p, use_old_vel, m_p, m_th):
 
     g1  = _g(rr, Rp, hr, q, p)
     dnl = Chi * 2 / (g1 * (gamma + 1))*(m_p/m_th)     # Eq. (11) Bollati et al. 2021
@@ -448,7 +448,7 @@ def _get_dens_vel_old(rr, Chi, gamma, Rp, cw, csp, hr, q, p, use_old_vel, m_p, m
 
     return dnl, unl, vnl
 
-def _get_dens_vel(rr, Chi, gamma, Rp, cw, csp, hr, q, p, use_old_vel, m_p, m_th):
+def _get_dens_vel_alt(rr, Chi, gamma, Rp, cw, csp, hr, q, p, use_old_vel, m_p, m_th):
 
     # calculate g
     g1  = _g(rr, Rp, hr, q, p)
@@ -457,10 +457,10 @@ def _get_dens_vel(rr, Chi, gamma, Rp, cw, csp, hr, q, p, use_old_vel, m_p, m_th)
     c0 = csp * (rr / Rp)**(-q)
     
     # calculate unl from chi
-    unl = np.sign(rr - Rp) * (-2 * c0 / (gamma + 1)) * (Chi / g1) * (m_p/m_th)
+    unl = np.sign(rr - Rp) * (2 * c0 / (gamma + 1)) * (Chi / g1) * (m_p/m_th)
     
     # calculate dnl from chi
-    dnl = - (Chi * 2) / ((gamma + 1) * g1) * (m_p/m_th)
+    dnl =  (Chi * 2) / ((gamma + 1) * g1) * (m_p/m_th)
     
     # calculate vnl from chi
     dOmega_r = np.abs(csp * Rp**-1 * hr**-1 * ((rr / Rp)**(-3 / 2) - 1)) * rr
