@@ -16,23 +16,23 @@ from scipy.interpolate      import RectBivariateSpline
 
 
 # wake shape
-def _phi_wake(r, Rp, hr, q, p, cw, m_p, m_th, nl_wake): 
+def _phi_wake(r, Rp, hr, q, p, cw, m_p, m_th, nl_wake, t0): 
     """Eq. (4) Bollati et al. 2021, non-linear correction Eq. (32) Cimerman & Rafikov (2022)
     """
     rr = r / Rp
     phi_l = np.sign(r - Rp) * (1 / hr) * (rr**(q - 0.5) / (q - 0.5) - rr**(q + 1) / (q + 1) - 3 / ((2 * q - 1) * (q + 1)))
     if nl_wake:
-        phi_nl = np.sign(r - Rp) * hr * np.sqrt(_t_vector(r, Rp, hr, q, p, m_p, m_th))
+        phi_nl = np.sign(r - Rp) * hr * np.sqrt(_t_vector(r, Rp, hr, q, p, m_p, m_th) - t0)
     else:
         phi_nl = 0
-    return -cw * (phi_l + phi_nl)
+    return -cw * (phi_l - phi_nl)
 
 # eta coordinate transformation
-def _Eta(r, phi, Rp, hr, q, p, cw, m_p, m_th, nl_wake):
+def _Eta(r, phi, Rp, hr, q, p, cw, m_p, m_th, nl_wake, t0):
     """Eq. (14) Bollati et al. 2021
     """
     coeff    = 1.5 / hr
-    phi_w    = _mod2pi(_phi_wake(r, Rp, hr, q, p, cw, m_p, m_th, nl_wake))
+    phi_w    = _mod2pi(_phi_wake(r, Rp, hr, q, p, cw, m_p, m_th, nl_wake, t0))
     deltaphi = phi - phi_w
 
     if deltaphi > np.pi:
@@ -43,7 +43,7 @@ def _Eta(r, phi, Rp, hr, q, p, cw, m_p, m_th, nl_wake):
 
     return coeff * deltaphi
 
-def _Eta_vector(r, phi, Rp, hr, q, p, cw, m_p, m_th, nl_wake):
+def _Eta_vector(r, phi, Rp, hr, q, p, cw, m_p, m_th, nl_wake, t0):
     """Eq. (14) Bollati et al. 2021
 
     Vectorised version of _Eta.
@@ -51,7 +51,7 @@ def _Eta_vector(r, phi, Rp, hr, q, p, cw, m_p, m_th, nl_wake):
     modulus operators and constant offsets.
     """
     coeff    = 1.5 / hr
-    phi_w    = _phi_wake(r, Rp, hr, q, p, cw, m_p, m_th, nl_wake) % (2*np.pi)
+    phi_w    = _phi_wake(r, Rp, hr, q, p, cw, m_p, m_th, nl_wake, t0) % (2*np.pi)
     deltaphi = (phi - phi_w + np.pi) % (2*np.pi) - np.pi
 
     return coeff * deltaphi
@@ -225,7 +225,7 @@ def _get_chi(
     #    print(t1-t1_orig)
 
 
-    eta1 = _Eta(rr, pphi, Rp, hr, q, p, cw, m_p, m_th, nl_wake)
+    eta1 = _Eta(rr, pphi, Rp, hr, q, p, cw, m_p, m_th, nl_wake, t0_outer)
 
     # If the point is in the outer disk, use the outer wake solution
     if (rr - Rp) > 0:
@@ -333,7 +333,7 @@ def _get_chi_vector(
 
     Chi = np.zeros_like(rr)
 
-    eta_array = _Eta_vector(rr, pphi, Rp, hr, q, p, cw, m_p, m_th, nl_wake)
+    eta_array = _Eta_vector(rr, pphi, Rp, hr, q, p, cw, m_p, m_th, nl_wake, t0_outer)
 
     # Inner and outer masks will account for the annulus directly.
     outer_mask = rr - Rp >= x_match_r * l
@@ -448,7 +448,7 @@ def _get_dens_vel(rr, Chi, gamma, Rp, cw, csp, hr, q, p, use_old_vel, m_p, m_th)
 
     return dnl, unl, vnl
 
-def _get_dens_vel_alt(rr, Chi, gamma, Rp, cw, csp, hr, q, p, use_old_vel, m_p, m_th):
+def _get_dens_vel_from_vr(rr, Chi, gamma, Rp, cw, csp, hr, q, p, use_old_vel, m_p, m_th):
 
     # calculate g
     g1  = _g(rr, Rp, hr, q, p)
@@ -460,13 +460,60 @@ def _get_dens_vel_alt(rr, Chi, gamma, Rp, cw, csp, hr, q, p, use_old_vel, m_p, m
     unl = np.sign(rr - Rp) * (2 * c0 / (gamma + 1)) * (Chi / g1) * (m_p/m_th)
     
     # calculate dnl from chi
-    dnl =  (Chi * 2) / ((gamma + 1) * g1) * (m_p/m_th)
+    dnl = (Chi * 2) / ((gamma + 1) * g1) * (m_p/m_th)
     
     # calculate vnl from chi
     dOmega_r = np.abs(csp * Rp**-1 * hr**-1 * ((rr / Rp)**(-3 / 2) - 1)) * rr
     vnl = (-cw) * c0 * unl / dOmega_r
     
     return dnl, unl, vnl
+
+# get the intial condition for chi by mapping from sigma
+def get_profile_from_sigma(
+    sigma,
+    r_IC,
+    gamma,
+    r_planet, 
+    hr_planet, 
+    q_index, 
+    p_index,
+):
+    # calculate g
+    g_fac = _g(
+        r_IC, 
+        r_planet, 
+        hr_planet, 
+        q_index, 
+        p_index
+    )
+    # return chi
+    return sigma * g_fac * (gamma + 1) / 2
+    
+# get the intial condition for chi by mapping from u instead of density perturbation
+def get_profile_from_u(
+        u, 
+        r_IC, 
+        gamma, 
+        cs_planet, 
+        r_planet, 
+        hr_planet, 
+        q_index, 
+        p_index,
+    ):
+        # calculate g
+        g_fac = _g(
+            r_IC, 
+            r_planet, 
+            hr_planet, 
+            q_index, 
+            p_index
+        )
+        # calculate sound speed at the edges of the box
+        c_s_edge = cs_planet * (r_IC / r_planet)**-q_index
+        # calculate brackets term
+        brackets = (1 + u * ((gamma - 1) / (2 * c_s_edge)))**(2 / (gamma - 1)) - 1
+        # calculate chi
+        return ((gamma + 1) / 2) * g_fac * brackets
 
 # plot the t coordinate as a function of radius
 def _plot_r_t(params):

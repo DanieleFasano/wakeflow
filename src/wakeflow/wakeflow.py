@@ -183,6 +183,7 @@ class WakeflowModel():
         rot_interp            = False         # expand grid to avoid border effects when interpolatin on rotated grid
         lin_type              = "global"      # Choose the perturbations to use in the linear regime. Supported options: global, simulation, shearing_sheet
         nl_wake               = False         # Add non linear correction to wake structure
+        vr_evolution          = False         # Use vr to take the initial value of chi instead of density perturbation (breaks solution)
         r_cut_inner_fac       = 2             # Cut numerical solution at r=r_planet/r_cut_in_fac
 
         # generate dictionary for model parameters by grabbing all local variables
@@ -220,7 +221,7 @@ class WakeflowModel():
         print(f"Model configuration read from file: {param_file}")
 
     # generate the model using the configuration specified by the user
-    def run(self, overwrite: bool = False) -> Optional[float]:
+    def run(self, overwrite: bool = False) -> None:
         """
         Generate results for model, requires user to have called either configure or configure_from_file first.
 
@@ -269,7 +270,7 @@ class WakeflowModel():
 
     # internal method that is called by self.run to generate the results for a specific set of parameters
     # may be called more than once if the user has specified multiple planet masses
-    def _run_wakeflow(self, params: _Parameters) -> Optional[float]:
+    def _run_wakeflow(self, params: _Parameters) -> None:
         """
         Internal use method for generating the planet wake by calling other parts of Wakeflow.
 
