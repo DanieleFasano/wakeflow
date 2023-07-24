@@ -504,7 +504,7 @@ class _NonLinearPerts():
 
         # outer edge limit for t. Needed to save computation time in case the disc parameters prevents the wake reaching the asymptotic limit before hitting the outer edge of the disc
         self.t_edge_outer = _t_vector(np.array(self.p.r_outer), self.p.r_planet, self.p.hr, self.p.q, self.p.p, self.p.m_planet, self.p.m_thermal)
-
+        print(self.t_edge_outer)
         print('Propagating outer wake... ')
 
         timer_0 = time.perf_counter()
@@ -524,6 +524,11 @@ class _NonLinearPerts():
             self.p.tf_fac,
             self.t_edge_outer
         )
+
+        savedir = f"{self.p.system}/{self.p.name}/{self.p.m_planet}Mj"
+        np.save(f"{savedir}/t_outer.npy",   time_outer)
+        np.save(f"{savedir}/eta_outer.npy", eta_outer)
+        np.save(f"{savedir}/chi_outer.npy", solution_outer)
 
         timer_1 = time.perf_counter()
 
@@ -551,6 +556,10 @@ class _NonLinearPerts():
             self.p.tf_fac,
             self.t_edge_inner
         )
+
+        np.save(f"{savedir}/t_inner.npy",   time_inner)
+        np.save(f"{savedir}/eta_inner.npy", eta_inner)
+        np.save(f"{savedir}/chi_inner.npy", -solution_inner)
 
         timer_1 = time.perf_counter()
 

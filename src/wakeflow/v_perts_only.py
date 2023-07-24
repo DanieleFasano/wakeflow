@@ -56,7 +56,7 @@ class _VelocityPerturbations(WakeflowModel):
 
         # extract linear perturbations from file
         lin_perts = _LinearPerts(params)
-        lin_perts._cut_box_annulus_segment()
+        lin_perts._cut_annulus_segment()
 
         # add the linear perturbations onto grid
         grid_lin_perts._add_linear_perturbations(lin_perts, rho_background=0.0)
@@ -70,7 +70,7 @@ class _VelocityPerturbations(WakeflowModel):
         nonlin_perts = _NonLinearPerts(params, grid_nonlin_perts)
 
         # extract initial condition from the linear perturbations
-        nonlin_perts._extract_ICs(lin_perts)
+        nonlin_perts._extract_ICs_ann(lin_perts)
 
         # solve for non-linear perturbations
         nonlin_perts._get_non_linear_perts()
