@@ -44,7 +44,7 @@ class WakeflowModel():
         r_outer:            float = 500,
         r_inner:            float = 100,
         r_planet:           float = 250,
-        phi_planet:         float = 0,
+        phi_planet:         float = 0.0,
         r_ref:              float = None,
         r_c:                float = 0,
         z_max:              float = 3,
@@ -328,6 +328,11 @@ class WakeflowModel():
             # merge grids for result
             if params.include_linear:
                 grid_nonlin_perts._merge_grids(grid_lin_perts)
+                
+            # rotate results if desired
+            if params.rot_interp is True:
+                print("Rotating results to match phi_planet")
+                grid_nonlin_perts.rotate(grid_background.rho)
 
             # merge grids for results
             grid_background._merge_grids(grid_nonlin_perts)
