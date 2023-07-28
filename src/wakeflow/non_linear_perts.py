@@ -370,7 +370,7 @@ class _NonLinearPerts():
         u_inner /= beta_p
         
         # debug plot
-        if True:
+        if False:
             plt.plot(phi_IC_outer, u_outer/u_outer.max(), label="u outer edge")
             plt.plot(phi_IC_outer, sigma_outer/sigma_outer.max(), label="sigma outer edge")
             plt.legend(loc="best")
@@ -420,7 +420,7 @@ class _NonLinearPerts():
         )
         
         # debug plot        
-        if True:
+        if False:
             plt.plot(phi_IC_outer, profile_outer_sigma, label="outer dens", c="C0")
             plt.plot(phi_IC_inner, profile_inner_sigma, label="inner dens", c="C1")
             plt.plot(phi_IC_outer, profile_outer_u, label="outer vr", c="C0", ls="--")

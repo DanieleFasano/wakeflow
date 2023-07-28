@@ -205,7 +205,7 @@ def _solve_burgers(
     solution = np.array(solution).transpose()
     time     = np.array(time)
    
-    if True:
+    if False:
         #plots for debugging: plot \eta profiles to check the evolution of the solution
         #colorbar
         n = len(time)
