@@ -57,11 +57,10 @@ class _Parameters(_Constants):
             self.m_planet       = None
             self.m_planet_array = list(config["m_planet"])
 
-        self.r_outer        = float(config["r_outer"])
-        self.r_inner        = float(config["r_inner"])
-        self.r_planet       = float(config["r_planet"])
-        self.phi_planet_deg = float(config["phi_planet"])
-        self.phi_planet_rad = self.phi_planet_deg * np.pi / 180
+        self.r_outer    = float(config["r_outer"])
+        self.r_inner    = float(config["r_inner"])
+        self.r_planet   = float(config["r_planet"])
+        self.phi_planet = float(config["phi_planet"])
         try:
             self.r_ref = float(config["r_ref"])
         except:
@@ -139,6 +138,10 @@ class _Parameters(_Constants):
 
         # get length scale l
         self.l = (2/3) * self.hr_planet * self.r_planet
+
+        #Define angles in degree and radians
+        self.phi_planet_deg = self.phi_planet
+        self.phi_planet_rad = self.phi_planet_deg * np.pi / 180
 
         # get sound speed at planet radius and reference radius
         v_kep_planet    = np.sqrt(self.G_const*self.m_star*self.m_solar / (self.r_planet*self.au))
