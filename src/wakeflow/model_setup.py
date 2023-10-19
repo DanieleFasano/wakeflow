@@ -57,10 +57,11 @@ class _Parameters(_Constants):
             self.m_planet       = None
             self.m_planet_array = list(config["m_planet"])
 
-        self.r_outer    = float(config["r_outer"])
-        self.r_inner    = float(config["r_inner"])
-        self.r_planet   = float(config["r_planet"])
-        self.phi_planet = float(config["phi_planet"])
+        self.r_outer        = float(config["r_outer"])
+        self.r_inner        = float(config["r_inner"])
+        self.r_planet       = float(config["r_planet"])
+        self.phi_planet_deg = float(config["phi_planet"])
+        self.phi_planet_rad = self.phi_planet_deg * np.pi / 180
         try:
             self.r_ref = float(config["r_ref"])
         except:

@@ -81,5 +81,10 @@ class _VelocityPerturbations(WakeflowModel):
         # merge grids for result
         grid_lin_perts._merge_grids(grid_nonlin_perts)
 
+        # rotate results if desired
+        if params.rot_interp is True:
+            print("Rotating results to match phi_planet")
+            grid_lin_perts.rotate(rho_background=1.0)
+
         # return the grid and velocity components
         return (grid_lin_perts.x, grid_lin_perts.y, grid_lin_perts.v_r, grid_lin_perts.v_phi)

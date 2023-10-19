@@ -98,7 +98,7 @@ class WakeflowModel():
         r_planet : float
             orbital radius of planet in au.
         phi_planet : float
-            azimuthal position of the planet in radians.
+            azimuthal position of the planet in degree.
         r_ref : float
             reference radius r_ref in au.
         r_c : float

@@ -715,8 +715,8 @@ class _Grid:
         y_mesh = copy(self.Y[:,0,:])
         
         # rotation of phi_planet
-        rot_x_mesh =  np.cos(self.p.phi_planet) * x_mesh + np.sin(self.p.phi_planet) * y_mesh
-        rot_y_mesh = -np.sin(self.p.phi_planet) * x_mesh + np.cos(self.p.phi_planet) * y_mesh
+        rot_x_mesh =  np.cos(self.p.phi_planet_rad) * x_mesh + np.sin(self.p.phi_planet_rad) * y_mesh
+        rot_y_mesh = -np.sin(self.p.phi_planet_rad) * x_mesh + np.cos(self.p.phi_planet_rad) * y_mesh
         
         # interpolation functions
         v_r_func = RegularGridInterpolator(
@@ -756,7 +756,7 @@ class _Grid:
         v_phi_rot = v_phi_rot.reshape(v_phi.shape)
         rho_rot   = rho_rot  .reshape(rho.shape)
         
-        plt.imshow(v_r_rot, origin="lower")
+        plt.imshow(v_r_rot.T, origin="lower")
         plt.show()
         
         # add back to results
