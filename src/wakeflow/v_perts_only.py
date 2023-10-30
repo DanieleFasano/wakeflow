@@ -79,12 +79,16 @@ class _VelocityPerturbations(WakeflowModel):
         grid_nonlin_perts._add_non_linear_perturbations(nonlin_perts, rho_background=0.0)
 
         # merge grids for result
-        grid_lin_perts._merge_grids(grid_nonlin_perts)
+        grid_nonlin_perts._merge_grids(grid_lin_perts)
+
+        if params.smooth_box:
+                print("Convolving results with Gaussian with sigma=0.4H")
+                grid_nonlin_perts._smooth_box()
 
         # rotate results if desired
         if params.rot_interp is True:
             print("Rotating results to match phi_planet")
-            grid_lin_perts.rotate(rho_background=1.0)
+            grid_nonlin_perts.rotate(rho_background=1.0)
 
         # return the grid and velocity components
-        return (grid_lin_perts.x, grid_lin_perts.y, grid_lin_perts.v_r, grid_lin_perts.v_phi)
+        return (grid_nonlin_perts.x, grid_nonlin_perts.y, grid_nonlin_perts.v_r, grid_nonlin_perts.v_phi)
