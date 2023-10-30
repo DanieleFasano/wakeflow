@@ -12,7 +12,7 @@ import sys, pkg_resources, tarfile
 import numpy                    as np
 import matplotlib.pyplot        as plt
 from scipy.interpolate      import RectBivariateSpline
-from .transformations       import _Eta_vector
+from .transformations       import _Eta_vector, _t
 
 if TYPE_CHECKING:
     from .model_setup       import _Parameters
@@ -95,7 +95,25 @@ class _LinearPerts():
             
         #Using perturbations from hydro simulation (not yet implemented)
         elif self.p.lin_type == "simulation":
-            raise NotImplementedError("Reading perturbations from a simulation is not yet supported.")
+            # grid
+            self.R   = mesh[0]
+            self.PHI = mesh[1]
+            #Rescale R with planet radius
+            self.R *= self.p.r_planet
+            # linear perturbations read in grid
+            r   = self.R[0,:]
+            phi = self.PHI[:,0]
+            #defining cartesian grid
+            x = np.linspace(-np.max(r), np.max(r), len(r))
+            y = np.linspace(-np.max(r), np.max(r), len(r))
+            #creating cartesian mesh
+            self.X, self.Y = np.meshgrid(x, y)
+            #updating info of linear perts      
+            self.info["Type"]    = "simulation"
+            self.info["Grid"]    = "cylindrical"
+            self.info["Size"][0] = r.shape[0]
+            self.info["Size"][1] = phi.shape[0]
+            self.info["Size"][2] = self.p.n_z
 
     # old method of extracting linear perturbations 
     def _cut_box_square(self) -> None:
@@ -161,7 +179,7 @@ class _LinearPerts():
         phi_box_size_bottom = self.x_box_bottom / 2
 
         #interpolate perturbations on a cylindrical grid and evaluate them in the annulus segment
-        if self.info["Type"] == "shearing_sheet" or self.info["Type"] == "simulation":
+        if self.info["Type"] == "shearing_sheet":
 
             # linear perturbations read in grid
             x = self.X[0,:]
@@ -244,7 +262,7 @@ class _LinearPerts():
             self.R_ann   = R
             self.PHI_ann = PHI
 
-        #The global solution is computed on a cylindrical grid, no need to interpolate
+        #The global solution is computed on a cylindrical grid, no need to interpolate.
         elif self.info["Type"] == "global":
 
             # linear perturbations read in grid
@@ -340,6 +358,98 @@ class _LinearPerts():
             self.R_ann   = R_ann
             self.PHI_ann = PHI_ann
 
+       #For now only simulations on cylindrical grids are supported.
+        elif self.info["Type"] == "simulation":
+
+            # linear perturbations read in grid
+            r   = self.R[0,:]
+            phi = self.PHI[:,0]
+
+            #masks for restriction
+            r_mask = np.logical_and(r >= self.p.r_planet - r_box_size_left*self.p.l, r <= self.p.r_planet + r_box_size_right*self.p.l)
+            phi_mask = np.logical_and(phi >= -phi_box_size_bottom*np.pi, phi <= phi_box_size_top*np.pi)
+            #print(r_mask.shape, phi_mask.shape)
+            #restricting grid to the annulus segment
+            r_ann   = r[r_mask]
+            phi_ann = phi[phi_mask]
+
+            R_ann, PHI_ann = np.meshgrid(r_ann, phi_ann)
+
+            # preparing pertubations for annulus segment
+            v_r_cyl   = self.pert_v_r.T   
+            v_phi_cyl = self.pert_v_phi.T
+            rho_cyl   = self.pert_rho.T
+
+            #plot for debugging
+            if False:
+                plt.imshow(rho_cyl, cmap="RdBu", vmin=-1, vmax=1, origin='lower', extent=(r_ann[0], r_ann[-1], phi_ann[0], phi_ann[-1]))
+                plt.axis('auto')
+                plt.xlabel('R [au]')
+                plt.ylabel(r'$\varphi$ [rad]')
+                plt.show()
+                plt.imshow(v_r_cyl, cmap="RdBu", vmin=-1, vmax=1, origin='lower', extent=(r_ann[0], r_ann[-1], phi_ann[0], phi_ann[-1]))
+                plt.axis('auto')
+                plt.xlabel('R [au]')
+                plt.ylabel(r'$\varphi$ [rad]')
+                plt.show()
+                plt.imshow(v_phi_cyl, cmap="RdBu", vmin=-1, vmax=1, origin='lower', extent=(r_ann[0], r_ann[-1], phi_ann[0], phi_ann[-1]))
+                plt.axis('auto')
+                plt.xlabel('R [au]')
+                plt.ylabel(r'$\varphi$ [rad]')
+                plt.show()
+            #print(v_r_cyl.shape)
+
+            #flip perts  if rotation is clockwise
+            if self.p.a_cw == -1:
+                v_r_cyl   =  np.flipud(v_r_cyl)
+                v_phi_cyl = -np.flipud(v_phi_cyl)
+                rho_cyl   =  np.flipud(rho_cyl)
+
+            #restricting perturbations to the annulus segment
+            self.pert_v_r_ann   = v_r_cyl[:,r_mask][phi_mask,:]
+            self.pert_v_phi_ann = v_phi_cyl[:,r_mask][phi_mask,:]
+            self.pert_rho_ann   = rho_cyl[:,r_mask][phi_mask,:]
+
+            #plot for debugging
+            if True:
+                plt.imshow(self.pert_rho_ann, cmap="RdBu", vmin=-1, vmax=1, origin='lower', extent=(r_ann[0], r_ann[-1], phi_ann[0], phi_ann[-1]))
+                plt.axis('auto')
+                plt.xlabel('R [au]')
+                plt.ylabel(r'$\varphi$ [rad]')
+                plt.show()
+                plt.imshow(self.pert_v_r_ann, cmap="RdBu", vmin=-1, vmax=1, origin='lower', extent=(r_ann[0], r_ann[-1], phi_ann[0], phi_ann[-1]))
+                plt.axis('auto')
+                plt.xlabel('R [au]')
+                plt.ylabel(r'$\varphi$ [rad]')
+                plt.show()
+                plt.imshow(self.pert_v_phi_ann, cmap="RdBu", vmin=-1, vmax=1, origin='lower', extent=(r_ann[0], r_ann[-1], phi_ann[0], phi_ann[-1]))
+                plt.axis('auto')
+                plt.xlabel('R [au]')
+                plt.ylabel(r'$\varphi$ [rad]')
+                plt.show()
+            if True:
+                t0 = _t(r_ann[ 0], self.p.r_planet, self.p.hr_planet, self.p.q, self.p.p, self.p.m_planet, self.p.m_thermal)
+                eta = _Eta_vector(self.p.r_planet + r_box_size_left*self.p.l, phi_ann, self.p.r_planet, self.p.hr, self.p.q, self.p.p, self.p.cw_rotation, self.p.m_planet, self.p.m_thermal, self.p.nl_wake, t0)
+                plt.plot(phi_ann, self.pert_rho_ann[:,-1])
+                ax = plt.gca()
+                ax.set_xlabel(r'$\varphi$ [rad]')
+                ax.set_ylabel(r'$\sigma$')
+                ax2 = ax.twiny()
+                ax2.plot(eta, self.pert_rho_ann[:,-1])
+                #ax2.plot(eta, self.pert_rho_ann[:,np.argmin(r_<self.p.r_planet + x_box_size_r*self.p.l)])
+                ax2.set_xlabel(r'$\eta$')
+                plt.show()
+
+            # scale with mass (how to?)
+            self.pert_v_r_ann   *= (self.p.m_planet)
+            self.pert_v_phi_ann *= (self.p.m_planet)
+            self.pert_rho_ann   *= (self.p.m_planet)
+
+            # save annulus grid
+            self.r_ann   = r_ann
+            self.phi_ann = phi_ann
+            self.R_ann   = R_ann
+            self.PHI_ann = PHI_ann
 
 
 def read_perturbation_files(lin_type="global"):
@@ -351,9 +461,10 @@ def read_perturbation_files(lin_type="global"):
         pert_loc = pkg_resources.resource_filename('wakeflow', 'data/linear_perturbations.npy')
         mesh_loc = pkg_resources.resource_filename('wakeflow', 'data/linear_perturbations_mesh.npy')
     elif lin_type == "simulation":
-        raise NotImplementedError("Reading the perturbations from simulation data is not supported yet.")
+        pert_loc = pkg_resources.resource_filename('wakeflow', 'data/fargo2d_1MJ_perturbations.npy')
+        mesh_loc = pkg_resources.resource_filename('wakeflow', 'data/fargo2d_1MJ_perturbations_mesh.npy')
     else:
-        raise ValueError("lin_type must be either 'global' or 'shearing_sheet'")
+        raise ValueError("lin_type must be either 'global', 'simulation' or 'shearing_sheet'")
     # try to read perturbations from files
     try:
         perts = np.load(pert_loc)
