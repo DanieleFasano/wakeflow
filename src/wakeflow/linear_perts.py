@@ -461,8 +461,8 @@ def read_perturbation_files(lin_type="global"):
         pert_loc = pkg_resources.resource_filename('wakeflow', 'data/linear_perturbations.npy')
         mesh_loc = pkg_resources.resource_filename('wakeflow', 'data/linear_perturbations_mesh.npy')
     elif lin_type == "simulation":
-        pert_loc = pkg_resources.resource_filename('wakeflow', 'data/fargo2d_1MJ_perturbations.npy')
-        mesh_loc = pkg_resources.resource_filename('wakeflow', 'data/fargo2d_1MJ_perturbations_mesh.npy')
+        pert_loc = pkg_resources.resource_filename('wakeflow', 'data/fargo2d_0.02MJ_perturbations.npy')
+        mesh_loc = pkg_resources.resource_filename('wakeflow', 'data/fargo2d_0.02MJ_perturbations_mesh.npy')
     else:
         raise ValueError("lin_type must be either 'global', 'simulation' or 'shearing_sheet'")
     # try to read perturbations from files
