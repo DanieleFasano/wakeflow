@@ -411,7 +411,7 @@ class _LinearPerts():
             self.pert_rho_ann   = rho_cyl[:,r_mask][phi_mask,:]
 
             #plot for debugging
-            if True:
+            if False:
                 plt.imshow(self.pert_rho_ann, cmap="RdBu", vmin=-1, vmax=1, origin='lower', extent=(r_ann[0], r_ann[-1], phi_ann[0], phi_ann[-1]))
                 plt.axis('auto')
                 plt.xlabel('R [au]')
@@ -427,15 +427,15 @@ class _LinearPerts():
                 plt.xlabel('R [au]')
                 plt.ylabel(r'$\varphi$ [rad]')
                 plt.show()
-            if True:
+            if False:
                 t0 = _t(r_ann[ 0], self.p.r_planet, self.p.hr_planet, self.p.q, self.p.p, self.p.m_planet, self.p.m_thermal)
-                eta = _Eta_vector(self.p.r_planet + r_box_size_left*self.p.l, phi_ann, self.p.r_planet, self.p.hr, self.p.q, self.p.p, self.p.cw_rotation, self.p.m_planet, self.p.m_thermal, self.p.nl_wake, t0)
-                plt.plot(phi_ann, self.pert_rho_ann[:,-1])
+                eta = _Eta_vector(self.p.r_planet - r_box_size_left*self.p.l, phi_ann, self.p.r_planet, self.p.hr, self.p.q, self.p.p, self.p.cw_rotation, self.p.m_planet, self.p.m_thermal, self.p.nl_wake, t0)
+                plt.plot(phi_ann, self.pert_rho_ann[:,0])
                 ax = plt.gca()
                 ax.set_xlabel(r'$\varphi$ [rad]')
                 ax.set_ylabel(r'$\sigma$')
                 ax2 = ax.twiny()
-                ax2.plot(eta, self.pert_rho_ann[:,-1])
+                ax2.plot(eta, self.pert_rho_ann[:,0])
                 #ax2.plot(eta, self.pert_rho_ann[:,np.argmin(r_<self.p.r_planet + x_box_size_r*self.p.l)])
                 ax2.set_xlabel(r'$\eta$')
                 plt.show()
