@@ -26,7 +26,8 @@ def _solve_burgers(
     linear_t, 
     show_teta, 
     tf_fac,
-    t_edge
+    t_edge,
+    N_wave_analytic
 ): 
     """Propagate the wake in (t,eta,chi) space by solving Eq. 10 from Bollati et al. 2021 using Godunov scheme.
     """
@@ -178,30 +179,32 @@ def _solve_burgers(
 
         solution.append(solution[-1][0:Neta] - dt / deta * (F[1:Neta+1] - F[0:Neta]))
 
-        # Implementing condition for exiting the loop in the asymptotic limit, when N wave and numerical solutions coincide up to 5%
-        # Eq. (18) Bollati et al. 2021.
-        # Left and right extrema of N wave profile
-        eta_minus = eta_tilde - np.sqrt(2 * C * (time[-1] - t0))
-        eta_plus  = eta_tilde + np.sqrt(2 * C * (time[-1] - t0))
+        if N_wave_analytic:
+            # Implementing condition for exiting the loop in the asymptotic limit, when N wave and numerical solutions coincide up to 5%
+            # Eq. (18) Bollati et al. 2021.
+            # Left and right extrema of N wave profile
+            eta_minus = eta_tilde - np.sqrt(2 * C * (time[-1] - t0))
+            eta_plus  = eta_tilde + np.sqrt(2 * C * (time[-1] - t0))
 
-        # Maximum and minimum values of N wave Eq. (17) Bollati et al. 2021.
-        N_wave_max = (eta_plus  - eta_tilde) / (time[-1]-t0)
-        N_wave_min = (eta_minus - eta_tilde) / (time[-1]-t0)
-        # Conditions on minimum and maximum amplitude up to 5%
-        condition_max_amplitude = np.abs((N_wave_max - np.max(solution[-1])) / np.max(solution[-1])) <= 0.05
-        condition_min_amplitude = np.abs((N_wave_min - np.min(solution[-1])) / np.min(solution[-1])) <= 0.05 #to be improved, now works only for outer disc. Or not?
-        condition_amplitude     = np.logical_and(condition_max_amplitude,condition_min_amplitude)
+            # Maximum and minimum values of N wave Eq. (17) Bollati et al. 2021.
+            N_wave_max = (eta_plus  - eta_tilde) / (time[-1]-t0)
+            N_wave_min = (eta_minus - eta_tilde) / (time[-1]-t0)
+            # Conditions on minimum and maximum amplitude up to 5%
+            condition_max_amplitude = np.abs((N_wave_max - np.max(solution[-1])) / np.max(solution[-1])) <= 0.05
+            condition_min_amplitude = np.abs((N_wave_min - np.min(solution[-1])) / np.min(solution[-1])) <= 0.05 #to be improved, now works only for outer disc. Or not?
+            condition_amplitude     = np.logical_and(condition_max_amplitude,condition_min_amplitude)
 
-        # Conditions on left and right extrema up to 5%
-        condition_max_width = np.abs(eta_plus  - eta[np.argmax(solution[-1])]) <= 0.05
-        condition_min_width = np.abs(eta_minus - eta[np.argmin(solution[-1])]) <= 0.05
-        condition_width     = np.logical_and(condition_max_width, condition_min_width)
+            # Conditions on left and right extrema up to 5%
+            condition_max_width = np.abs(eta_plus  - eta[np.argmax(solution[-1])]) <= 0.05
+            condition_min_width = np.abs(eta_minus - eta[np.argmin(solution[-1])]) <= 0.05
+            condition_width     = np.logical_and(condition_max_width, condition_min_width)
 
 
-        if lapsed_time >= tf:
-            if np.logical_and(condition_amplitude, condition_width):
-                break
-
+            if lapsed_time >= tf:
+                if np.logical_and(condition_amplitude, condition_width):
+                    break
+    print(lapsed_time)
+    print(N_wave_analytic)
     solution = np.array(solution).transpose()
     time     = np.array(time)
    

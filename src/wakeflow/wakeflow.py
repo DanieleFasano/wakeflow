@@ -181,6 +181,7 @@ class WakeflowModel():
         use_box_IC            = False         # use linear regime in square box as initial condition for non-linear evolution
         use_old_vel           = False         # use old approximated formulas for u pert
         rot_interp            = False         # expand grid to avoid border effects when interpolatin on rotated grid
+        N_wave_analytic       = True          # Switch for using analytic asymptotic regime or not
         lin_type              = "global"      # Choose the perturbations to use in the linear regime. Supported options: global, simulation, shearing_sheet
         nl_wake               = False         # Add non linear correction to wake structure
         vr_evolution          = False         # Use vr to take the initial value of chi instead of density perturbation (breaks solution)

@@ -126,6 +126,7 @@ class _Parameters(_Constants):
         self.use_box_IC           = bool (config["use_box_IC"])
         self.tf_fac               = float(config["tf_fac"])
         self.r_cut_inner_fac      = float(config["r_cut_inner_fac"])
+        self.N_wave_analytic      = bool (config["N_wave_analytic"])
         
         # Choice of physics
         self.use_old_vel          = bool(config["use_old_vel"])
@@ -256,9 +257,7 @@ class _Parameters(_Constants):
         # check velocity formulas
         if self.use_old_vel:
             print("WARNING: Choosing use_old_vel=True may cause a different velocity output.")
-        print("Parameters Ok - continuing")
-        return True
-            
+        
         # check linear perturbations input from user    
         if self.lin_type != "shearing_sheet" and self.lin_type != "global" and self.lin_type != "simulation":
             raise Exception("Invalid linear perturbation type. Choose either global or simulation or shearing_sheet)")
@@ -267,6 +266,11 @@ class _Parameters(_Constants):
         if self.lin_type == "shearing_sheet":
             print("WARNING: The shearing sheet approximation may be invalid for a given choice of parameters. This may lead to incorrect results")
 
+        if self.N_wave_analytic == False:
+            print("WARNING: This will remove the discontinuity at the asymptotic limit at the price of more computing time. 'Did you obtain what you wanted?' 'Yes.' 'What did it cost?' 'Everything'" )
+        print("Parameters Ok - continuing")
+        return True
+            
  # read in .yaml file, check keys correspond to parameters and return dictionary of parameters
 def _load_config_file(config_file: str, default_config_dict: dict = None) -> dict:
     """Reads .yaml parameter file into a dictionary so that Wakeflow may parse it.

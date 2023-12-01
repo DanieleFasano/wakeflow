@@ -438,8 +438,8 @@ class _NonLinearPerts():
             profile_inner = profile_inner_u
         
         # find t points
-        t_IC_outer = _t(r_IC_outer, self.p.r_planet, self.p.hr_planet, self.p.q, self.p.p, self.p.m_planet, self.p.m_thermal)
-        t_IC_inner = _t(r_IC_inner, self.p.r_planet, self.p.hr_planet, self.p.q, self.p.p, self.p.m_planet, self.p.m_thermal)
+        t_IC_outer = _t_vector(np.array(r_IC_outer), self.p.r_planet, self.p.hr_planet, self.p.q, self.p.p, self.p.m_planet, self.p.m_thermal)
+        t_IC_inner = _t_vector(np.array(r_IC_inner), self.p.r_planet, self.p.hr_planet, self.p.q, self.p.p, self.p.m_planet, self.p.m_thermal)
         
         # set t0
         self.t0_outer = t_IC_outer
@@ -522,7 +522,8 @@ class _NonLinearPerts():
             self.linear_t, 
             self.p.show_teta_debug_plots,
             self.p.tf_fac,
-            self.t_edge_outer
+            self.t_edge_outer,
+            self.p.N_wave_analytic
         )
 
         timer_1 = time.perf_counter()
@@ -549,12 +550,21 @@ class _NonLinearPerts():
             self.linear_t, 
             self.p.show_teta_debug_plots,
             self.p.tf_fac,
-            self.t_edge_inner
+            self.t_edge_inner,
+            self.p.N_wave_analytic
         )
 
         timer_1 = time.perf_counter()
 
         print(f'Completed in {timer_1-timer_0:0.2f} s')
+
+        savedir = f"{self.p.system}/{self.p.name}/{self.p.m_planet}Mj"
+        np.save(f'{savedir}/t_inner', time_inner)
+        np.save(f'{savedir}/eta_inner', eta_inner)
+        np.save(f'{savedir}/chi_inner', solution_inner)
+        np.save(f'{savedir}/t_outer', time_outer)
+        np.save(f'{savedir}/eta_outer', eta_outer)
+        np.save(f'{savedir}/chi_outer', solution_outer)
 
         # final time of solutions before N-wave behaviour
         tf_outer = time_outer[-1]
