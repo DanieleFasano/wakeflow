@@ -22,10 +22,10 @@ def _phi_wake(r, Rp, hr, q, p, cw, m_p, m_th, nl_wake, t0):
     rr = r / Rp
     phi_l = np.sign(r - Rp) * (1 / hr) * (rr**(q - 0.5) / (q - 0.5) - rr**(q + 1) / (q + 1) - 3 / ((2 * q - 1) * (q + 1)))
     if nl_wake:
-        phi_nl = np.sign(r - Rp) * hr * np.sqrt(_t_vector(r, Rp, hr, q, p, m_p, m_th) - t0)
+        phi_nl = np.sign(r - Rp) * hr * np.sqrt(_t_vector(np.array(r), Rp, hr, q, p, m_p, m_th) - t0)
     else:
         phi_nl = 0
-    return -cw * (phi_l - phi_nl)
+    return -cw * (phi_l + phi_nl)
 
 # eta coordinate transformation
 def _Eta(r, phi, Rp, hr, q, p, cw, m_p, m_th, nl_wake, t0):
