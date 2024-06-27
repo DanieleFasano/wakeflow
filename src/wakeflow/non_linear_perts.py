@@ -551,7 +551,7 @@ class _NonLinearPerts():
             self.p.show_teta_debug_plots,
             self.p.tf_fac,
             self.t_edge_inner,
-            self.p.N_wave_analytic
+            True#self.p.N_wave_analytic
         )
 
         timer_1 = time.perf_counter()

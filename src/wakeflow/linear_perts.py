@@ -39,7 +39,7 @@ class _LinearPerts():
             }
         
         # read in perturbations from data files
-        mesh, perts = read_perturbation_files(self.p.lin_type)
+        mesh, perts = read_perturbation_files(self.p.lin_type, self.p.m_planet/self.p.m_thermal, self.p.hr)
         
         # get perturbation arrays
         self.pert_v_r   = perts[0]
@@ -428,14 +428,14 @@ class _LinearPerts():
                 plt.ylabel(r'$\varphi$ [rad]')
                 plt.show()
             if False:
-                t0 = _t(r_ann[ 0], self.p.r_planet, self.p.hr_planet, self.p.q, self.p.p, self.p.m_planet, self.p.m_thermal)
-                eta = _Eta_vector(self.p.r_planet - r_box_size_left*self.p.l, phi_ann, self.p.r_planet, self.p.hr, self.p.q, self.p.p, self.p.cw_rotation, self.p.m_planet, self.p.m_thermal, self.p.nl_wake, t0)
-                plt.plot(phi_ann, self.pert_rho_ann[:,0])
+                t0 = _t(r_ann[ -1], self.p.r_planet, self.p.hr_planet, self.p.q, self.p.p, self.p.m_planet, self.p.m_thermal)
+                eta = _Eta_vector(self.p.r_planet + r_box_size_left*self.p.l, phi_ann, self.p.r_planet, self.p.hr, self.p.q, self.p.p, self.p.cw_rotation, self.p.m_planet, self.p.m_thermal, self.p.nl_wake, t0)
+                plt.plot(phi_ann, self.pert_rho_ann[:,-1])
                 ax = plt.gca()
                 ax.set_xlabel(r'$\varphi$ [rad]')
                 ax.set_ylabel(r'$\sigma$')
                 ax2 = ax.twiny()
-                ax2.plot(eta, self.pert_rho_ann[:,0])
+                ax2.plot(eta, self.pert_rho_ann[:,-1])
                 #ax2.plot(eta, self.pert_rho_ann[:,np.argmin(r_<self.p.r_planet + x_box_size_r*self.p.l)])
                 ax2.set_xlabel(r'$\eta$')
                 plt.show()
@@ -452,7 +452,7 @@ class _LinearPerts():
             self.PHI_ann = PHI_ann
 
 
-def read_perturbation_files(lin_type="global"):
+def read_perturbation_files(lin_type="global", mass_ratio = 0.25, hr = 0.1):
     # get location of linear perturbations data files
     if lin_type == "global":
         pert_loc = pkg_resources.resource_filename('wakeflow', 'data/global_linear_perturbations.npy')
@@ -461,8 +461,19 @@ def read_perturbation_files(lin_type="global"):
         pert_loc = pkg_resources.resource_filename('wakeflow', 'data/linear_perturbations.npy')
         mesh_loc = pkg_resources.resource_filename('wakeflow', 'data/linear_perturbations_mesh.npy')
     elif lin_type == "simulation":
-        pert_loc = pkg_resources.resource_filename('wakeflow', 'data/fargo2d_0.02MJ_perturbations.npy')
-        mesh_loc = pkg_resources.resource_filename('wakeflow', 'data/fargo2d_0.02MJ_perturbations_mesh.npy')
+        if hr < 0.1:
+            if mass_ratio < 1:
+                pert_loc = pkg_resources.resource_filename('wakeflow', 'data/fargo2d_0.0218MJ_perturbations.npy')
+                mesh_loc = pkg_resources.resource_filename('wakeflow', 'data/fargo2d_0.0218MJ_perturbations_mesh.npy')
+            elif mass_ratio > 2:
+                pert_loc = pkg_resources.resource_filename('wakeflow', 'data/fargo2d_0.0872MJ_perturbations.npy')
+                mesh_loc = pkg_resources.resource_filename('wakeflow', 'data/fargo2d_0.0872MJ_perturbations_mesh.npy')
+            else:
+                pert_loc = pkg_resources.resource_filename('wakeflow', 'data/fargo2d_0.0872MJ_perturbations.npy')
+                mesh_loc = pkg_resources.resource_filename('wakeflow', 'data/fargo2d_0.0872MJ_perturbations_mesh.npy')
+        else:
+            pert_loc = pkg_resources.resource_filename('wakeflow', 'data/fargo2d_0.698MJ_perturbations.npy')
+            mesh_loc = pkg_resources.resource_filename('wakeflow', 'data/fargo2d_0.698MJ_perturbations_mesh.npy')
     else:
         raise ValueError("lin_type must be either 'global', 'simulation' or 'shearing_sheet'")
     # try to read perturbations from files
